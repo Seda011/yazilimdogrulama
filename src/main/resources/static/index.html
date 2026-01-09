@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Service UI</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .section { margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; }
+        label { display: block; margin-bottom: 5px; }
+        input { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Order Service</h1>
+
+    <div class="section">
+        <h2>Place Order</h2>
+        <label for="customerId">Customer ID:</label>
+        <input type="number" id="customerId" value="1">
+        
+        <label for="productIds">Product IDs (comma separated):</label>
+        <input type="text" id="productIds" value="1,2">
+        
+        <button id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
+        <div id="orderResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Customer Orders</h2>
+        <label for="viewCustomerId">Customer ID:</label>
+        <input type="number" id="viewCustomerId" value="1">
+        <button id="viewOrdersBtn" onclick="viewOrders()">View Orders</button>
+        <ul id="ordersList"></ul>
+    </div>
+
+    <script>
+        async function placeOrder() {
+            const customerId = document.getElementById('customerId').value;
+            const productIds = document.getElementById('productIds').value.split(',').map(id => parseInt(id.trim()));
+
+            try {
+                const response = await fetch(`/api/orders?customerId=${customerId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productIds)
+                });
+                
+                if (response.ok) {
+                    const order = await response.json();
+                    document.getElementById('orderResult').innerText = 'Order Placed! ID: ' + order.id;
+                    document.getElementById('orderResult').style.color = 'green';
+                } else {
+                    document.getElementById('orderResult').innerText = 'Error placing order';
+                    document.getElementById('orderResult').style.color = 'red';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function viewOrders() {
+            const customerId = document.getElementById('viewCustomerId').value;
+            const list = document.getElementById('ordersList');
+            list.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(`/api/orders/customer/${customerId}`);
+                const orders = await response.json();
+                
+                list.innerHTML = '';
+                orders.forEach(order => {
+                    const li = document.createElement('li');
+                    li.innerText = `Order #${order.id} - ${order.status} - ${order.items.length} items`;
+                    list.appendChild(li);
+                });
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = 'Error loading orders';
+            }
+        }
+    </script>
+</body>
+</html>
