@@ -6,6 +6,10 @@ pipeline {
         APP_URL = "http://localhost:8080"
     }
 
+    tools {
+        maven 'Maven 3'
+    }
+
     stages {
         stage('Checkout') {
             steps {
